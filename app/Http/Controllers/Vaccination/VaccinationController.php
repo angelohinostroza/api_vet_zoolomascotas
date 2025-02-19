@@ -31,7 +31,7 @@ class VaccinationController extends Controller
         $search_pets = $request->search_pets;
         $search_vets = $request->search_vets;
 
-        $vaccinations = Vaccination::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets)->orderBy("id","desc")->paginate(25);
+        $vaccinations = Vaccination::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets)->orderBy("id","desc")->paginate(10);
 
         return response()->json([
             "total_page" => $vaccinations->lastPage(),
