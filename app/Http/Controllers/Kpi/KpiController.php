@@ -52,7 +52,7 @@ class KpiController extends Controller
         ]);
     }
 
-    public function kpi_veterinarie_net_income(Request $request){ 
+    public function kpi_veterinarie_net_income(Request $request){
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         // EL VETERINARIO CON MAS INGRESOS NETOS POR LOS SERVICOS ASIGNADOS
