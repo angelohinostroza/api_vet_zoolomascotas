@@ -376,7 +376,11 @@ class KpiController extends Controller
 
             $payments_total_before = $payments_appointment_before + $payments_vaccination_before + $payments_surgerie_before;
 
-            $VPPets = (($pet_most_payments["payment_totals"] - $payments_total_before)/$payments_total_before)*100;
+            if ($payments_total_before != 0) {
+                $VPPets = (($pet_most_payments["payment_totals"] - $payments_total_before) / $payments_total_before) * 100;
+            } else {
+                $VPPets = 0;
+            }
         }
         return response()->json([
             "VPPets" => round($VPPets,2),
