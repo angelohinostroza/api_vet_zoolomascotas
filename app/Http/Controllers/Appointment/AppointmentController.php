@@ -10,6 +10,7 @@ use App\Models\Surgerie\Surgerie;
 use Illuminate\Support\Facades\DB;
 use App\Exports\DownloadAppointment;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Appointment\Appointment;
 use App\Models\Vaccination\Vaccination;
@@ -27,6 +28,7 @@ class AppointmentController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny',Appointment::class);
         $type_date = $request->type_date;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
@@ -194,6 +196,7 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create',Appointment::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -238,6 +241,7 @@ class AppointmentController extends Controller
      */
     public function show(string $id)
     {
+        Gate::authorize('view',Appointment::class);
         $appointment = Appointment::findOrFail($id);
         return response()->json([
             "appointment" => AppointmentResource::make($appointment),
@@ -249,6 +253,7 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Gate::authorize('update',Appointment::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -313,6 +318,7 @@ class AppointmentController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('delete',Appointment::class);
         $appointment = Appointment::findOrFail($id);
         if($appointment->state == 3){
             return response()->json([

@@ -7,6 +7,7 @@ use App\Models\Pets\Owner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Pets\PetResource;
 use App\Http\Resources\Pets\PetCollection;
@@ -18,6 +19,7 @@ class PetsController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny',Pet::class);
         $search = $request->get("search");
         $species = $request->get("species");
 
@@ -45,7 +47,7 @@ class PetsController extends Controller
      */
     public function store(Request $request)
     {
-
+        Gate::authorize('create',Pet::class);
         if($request->hasFile("imagen")){
             $path = Storage::putFile("pets",$request->file("imagen"));
             $request->request->add(["photo" => $path]);
@@ -80,6 +82,7 @@ class PetsController extends Controller
      */
     public function show(string $id)
     {
+        Gate::authorize('view',Pet::class);
         $pet = Pet::findOrfail($id);
         return response()->json([
             "pet" => PetResource::make($pet)
@@ -91,6 +94,7 @@ class PetsController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Gate::authorize('update',Pet::class);
         $pet = Pet::findOrFail($id);
         if($request->hasFile("imagen")){
             if($pet->avatar){
@@ -128,6 +132,7 @@ class PetsController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('delete',Pet::class);
         $pet = Pet::findOrFail($id);
         if($pet->photo){
             Storage::delete($pet->photo);

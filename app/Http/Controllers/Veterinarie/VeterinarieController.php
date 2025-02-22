@@ -22,6 +22,11 @@ class VeterinarieController extends Controller
      */
     public function index(Request $request)
     {
+        if(!auth('api')->user()->can("list_veterinary")){
+            return response()->json([
+                'message' => 'THIS ACTION IS UNAUTHORIZED.'
+            ], 403);
+        }
         $search = $request->get("search");
 
         $veterinaries = User::Where(DB::raw("users.name || ' ' || COALESCE(users.surname,'') || ' ' || users.email"),
@@ -72,6 +77,11 @@ class VeterinarieController extends Controller
      */
     public function store(Request $request)
     {
+        if(!auth('api')->user()->can("register_veterinary")){
+            return response()->json([
+                'message' => 'THIS ACTION IS UNAUTHORIZED.'
+            ], 403);
+        }
         $is_user_exists = User::where("email",$request->email)->first();
         if($is_user_exists){
             return response()->json([
@@ -119,6 +129,11 @@ class VeterinarieController extends Controller
      */
     public function show(string $id)
     {
+        if(!auth('api')->user()->can("profile_veterinary")){
+            return response()->json([
+                'message' => 'THIS ACTION IS UNAUTHORIZED.'
+            ], 403);
+        }
         $veterinarie = User::findOrfail($id);
         return response()->json([
             "veterinarie" => VeterinarieResource::make($veterinarie)
@@ -130,6 +145,11 @@ class VeterinarieController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if(!auth('api')->user()->can("edit_veterinary")){
+            return response()->json([
+                'message' => 'THIS ACTION IS UNAUTHORIZED.'
+            ], 403);
+        }
         $is_user_exists = User::where("email",$request->email)->where("id","<>",$id)->first();
         if($is_user_exists){
             return response()->json([
@@ -193,6 +213,11 @@ class VeterinarieController extends Controller
      */
     public function destroy(string $id)
     {
+        if(!auth('api')->user()->can("delete_veterinary")){
+            return response()->json([
+                'message' => 'THIS ACTION IS UNAUTHORIZED.'
+            ], 403);
+        }
         $veterinarie = User::findOrFail($id);
         if($veterinarie->avatar){
             Storage::delete($veterinarie->avatar);

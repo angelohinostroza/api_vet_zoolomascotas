@@ -43,9 +43,14 @@ Route::group([
     Route::post("appointments/index",[AppointmentController::class,"index"]);
     Route::resource("appointments",AppointmentController::class);
 
-    Route::get("/medical-records/calendar",[MedicalRecordController::class,"calendar"]);
-    Route::put("/medical-records/update_aux/{id}",[MedicalRecordController::class,"update_aux"]);
-    Route::post("/medical-records/pet",[MedicalRecordController::class,"index"]);
+    Route::group(['middleware' => ['permission:calendar']], function () {
+        Route::get("/medical-records/calendar",[MedicalRecordController::class,"calendar"]);
+        Route::put("/medical-records/update_aux/{id}",[MedicalRecordController::class,"update_aux"]);
+    });
+
+    Route::group(['middleware' => ['permission:show_medical_records']], function () {
+        Route::post("/medical-records/pet",[MedicalRecordController::class,"index"]);
+    });
 
     Route::post("vaccinations/index",[VaccinationController::class,"index"]);
     Route::resource("vaccinations",VaccinationController::class);
@@ -53,17 +58,22 @@ Route::group([
     Route::post("surgeries/index",[SurgerieController::class,"index"]);
     Route::resource("surgeries",SurgerieController::class);
 
-    Route::post("payments/index",[PaymentController::class,"index"]);
-    Route::resource("payments",PaymentController::class);
+    Route::group(['middleware' => ['permission:show_payment|edit_payment']], function () {
+        Route::post("payments/index",[PaymentController::class,"index"]);
+        Route::resource("payments",PaymentController::class);
+    });
 
-    Route::post("kpi_report_general",[KpiController::class,"kpi_report_general"]);
-    Route::post("kpi_veterinarie_net_income",[KpiController::class,"kpi_veterinarie_net_income"]);
-    Route::post("kpi_veterinarie_most_asigned",[KpiController::class,"kpi_veterinarie_most_asigned"]);
-    Route::post("kpi_total_bruto",[KpiController::class,"kpi_total_bruto"]);
-    Route::post("kpi_report_for_servicies",[KpiController::class,"kpi_report_for_servicies"]);
-    Route::post("kpi_pets_most_payments",[KpiController::class,"kpi_pets_most_payments"]);
-    Route::post("kpi_payments_x_day_month",[KpiController::class,"kpi_payments_x_day_month"]);
-    Route::post("kpi_payments_x_month_of_year",[KpiController::class,"kpi_payments_x_month_of_year"]);
+    Route::group(['middleware' => ['permission:show_report_grafics']], function () {
+        Route::post("kpi_report_general",[KpiController::class,"kpi_report_general"]);
+        Route::post("kpi_veterinarie_net_income",[KpiController::class,"kpi_veterinarie_net_income"]);
+        Route::post("kpi_veterinarie_most_asigned",[KpiController::class,"kpi_veterinarie_most_asigned"]);
+        Route::post("kpi_total_bruto",[KpiController::class,"kpi_total_bruto"]);
+        Route::post("kpi_report_for_servicies",[KpiController::class,"kpi_report_for_servicies"]);
+        Route::post("kpi_pets_most_payments",[KpiController::class,"kpi_pets_most_payments"]);
+        Route::post("kpi_payments_x_day_month",[KpiController::class,"kpi_payments_x_day_month"]);
+        Route::post("kpi_payments_x_month_of_year",[KpiController::class,"kpi_payments_x_month_of_year"]);
+    });
+
 
 });
 Route::get("appointment-excel",[AppointmentController::class,"downloadExcel"]);

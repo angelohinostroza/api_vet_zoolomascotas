@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
 use App\Exports\DownloadVaccination;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Vaccination\Vaccination;
 use App\Models\Vaccination\VaccinationPayment;
@@ -22,6 +23,7 @@ class VaccinationController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny',Vaccination::class);
         $type_date = $request->type_date;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
@@ -59,6 +61,7 @@ class VaccinationController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create',Vaccination::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -108,6 +111,7 @@ class VaccinationController extends Controller
      */
     public function show(string $id)
     {
+        Gate::authorize('view',Vaccination::class);
         $vaccination = Vaccination::findOrFail($id);
         return response()->json([
             "vaccination" => VaccinationResource::make($vaccination),
@@ -119,6 +123,7 @@ class VaccinationController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Gate::authorize('update',Vaccination::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -190,6 +195,7 @@ class VaccinationController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('delete',Vaccination::class);
         $vaccination = Vaccination::findOrFail($id);
         if($vaccination->state == 3){
             return response()->json([

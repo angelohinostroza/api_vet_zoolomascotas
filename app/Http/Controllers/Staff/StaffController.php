@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\User\UserResource;
 use App\Http\Resources\User\UserCollection;
@@ -18,6 +19,7 @@ class StaffController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny',User::class);
         $search = $request->get("search");
 
         $users = User::Where(DB::raw("users.name || ' ' || COALESCE(users.surname,'') || ' ' || users.email"),
@@ -43,6 +45,7 @@ class StaffController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create',User::class);
         $is_user_exists = User::where("email",$request->email)->first();
         if($is_user_exists){
             return response()->json([
@@ -84,6 +87,7 @@ class StaffController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        Gate::authorize('update',User::class);
         $is_user_exists = User::where("email",$request->email)->where("id","<>",$id)->first();
         if($is_user_exists){
             return response()->json([
@@ -127,6 +131,7 @@ class StaffController extends Controller
      */
     public function destroy(string $id)
     {
+        Gate::authorize('delete',User::class);
         $user = User::findOrFail($id);
         if($user->avatar){
             Storage::delete($user->avatar);
