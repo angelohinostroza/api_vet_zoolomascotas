@@ -37,8 +37,9 @@ class AppointmentController extends Controller
         $specie = $request->specie;
         $search_pets = $request->search_pets;
         $search_vets = $request->search_vets;
+        $user = auth('api')->user();
 
-        $appointments = Appointment::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets)->orderBy("id","desc")->paginate(10);
+        $appointments = Appointment::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets,$user)->orderBy("id","desc")->paginate(10);
 
         return response()->json([
             "total_page" => $appointments->lastPage(),

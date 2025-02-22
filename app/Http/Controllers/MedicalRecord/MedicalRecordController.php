@@ -40,7 +40,12 @@ class MedicalRecordController extends Controller
 
     public function calendar(Request $request)
     {
-        $medical_records = MedicalRecord::orderBy("id","desc")->get();
+        $user = auth('api')->user();
+        $medical_records = MedicalRecord::where(function($q) use($user) {
+            if($user && strpos(strtolower($user->role->name),'veterinario') !== false){
+                $q->where("veterinarie_id",$user->id);
+            }
+        })->orderBy("id","desc")->get();
 
         return response()->json([
             "calendars" => MedicalRecordCalendarCollection::make($medical_records),

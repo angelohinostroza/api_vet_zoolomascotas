@@ -62,13 +62,16 @@ class Surgerie extends Model
     public function medical_record(){
         return $this->hasOne(MedicalRecord::class,"surgerie_id");
     }
-    public function scopeFilterMultiple($query,$type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets){
+    public function scopeFilterMultiple($query,$type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets,$user = null){
         if($start_date && $end_date){
             if($type_date == 1){//POR FECHA DE VACUNACION
                 $query->whereBetween("date_appointment",[Carbon::parse($start_date)->format("Y-m-d")." 00:00:00",Carbon::parse($end_date)->format("Y-m-d")." 23:59:59"]);//Y-m-d h:i:s 00:00:00 23:59:59
             }else{//POR LA FECHA DE REGISTRO
                 $query->whereBetween("created_at",[Carbon::parse($start_date)->format("Y-m-d")." 00:00:00",Carbon::parse($end_date)->format("Y-m-d")." 23:59:59"]);
             }
+        }
+        if($user && strpos(strtolower($user->role->name),'veterinario') !== false){
+            $query->where("veterinarie_id",$user->id);
         }
         if($state_pay){
             $query->where("state_pay",$state_pay);
