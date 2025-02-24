@@ -34,7 +34,7 @@ class SurgerieController extends Controller
         $search_vets = $request->search_vets;
         $user = auth('api')->user();
 
-        $surgeries = Surgerie::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets, $user)->orderBy("id","desc")->paginate(10);
+        $surgeries = Surgerie::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets, $user)->orderBy("id","desc")->paginate(4);
 
         return response()->json([
             "total_page" => $surgeries->lastPage(),

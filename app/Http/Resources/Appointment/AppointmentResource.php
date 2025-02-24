@@ -44,7 +44,7 @@ class AppointmentResource extends JsonResource
                 "name" => $this->resource->pet->name,
                 "specie" => $this->resource->pet->specie,
                 "breed" => $this->resource->pet->breed,
-                "photo" => env("APP_URL")."storage/".$this->resource->pet->photo,
+                "avatar" => env("APP_URL")."storage/".$this->resource->pet->avatar,
                 "owner" => [
                     "id" =>$this->resource->pet->owner->id,
                     "names"  =>$this->resource->pet->owner->names,

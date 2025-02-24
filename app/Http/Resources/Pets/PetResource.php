@@ -24,7 +24,7 @@ class PetResource extends JsonResource
             'gender' => $this->resource->gender,
             'color' => $this->resource->color,
             'weight' => $this->resource->weight,
-            'photo' => env("APP_URL")."storage/".$this->resource->photo,
+            'avatar' => env("APP_URL")."storage/".$this->resource->avatar,
             'medical_notes' => $this->resource->medical_notes,
             'owner_id' => $this->resource->owner_id,
             "n_appointment" => $this->resource->appointments->count(),

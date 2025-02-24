@@ -68,7 +68,7 @@ class NotificationScheduleMessajeEmail extends Command
                         $data = [
                             "full_name" => $medical_record->pet->owner->names.' '.$medical_record->pet->owner->surnames,
                             "name_pet" => $medical_record->pet->name,
-                            "imagen" => env("APP_URL")."storage/".$medical_record->pet->photo,
+                            "imagen" => env("APP_URL")."storage/".$medical_record->pet->avatar,
                             "event_type" => $medical_record->event_type,
                             "event_date" => Carbon::parse($medical_record->event_date)->format("Y/m/d"),
                             "hour_start" => Carbon::parse(date("Y-m-d")." ".$schedule_hour_start->schedule_hour->hour_start)->format("h:i A")

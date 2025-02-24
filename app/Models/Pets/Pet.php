@@ -22,7 +22,7 @@ class Pet extends Model
         'gender',
         'color',
         'weight',
-        'photo',
+        'avatar',
         'medical_notes',
         'owner_id'
     ];

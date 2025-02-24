@@ -34,7 +34,7 @@ class PetsController extends Controller
                         });
                     }
                 })
-                ->orderBy("id","desc")->paginate(5);
+                ->orderBy("id","desc")->paginate(4);
 
         return response()->json([
             "total_page" => $pets->lastPage(),
@@ -50,7 +50,7 @@ class PetsController extends Controller
         Gate::authorize('create',Pet::class);
         if($request->hasFile("imagen")){
             $path = Storage::putFile("pets",$request->file("imagen"));
-            $request->request->add(["photo" => $path]);
+            $request->request->add(["avatar" => $path]);
         }
 
         $owner = Owner::create([
@@ -101,7 +101,7 @@ class PetsController extends Controller
                 Storage::delete($pet->avatar);
             }
             $path = Storage::putFile("pets",$request->file("imagen"));
-            $request->request->add(["photo" => $path]);
+            $request->request->add(["avatar" => $path]);
         }
         if($request->birth_date){
             $request->request->add(["birth_date" => $request->birth_date." 00:00:00"]);
@@ -134,8 +134,8 @@ class PetsController extends Controller
     {
         Gate::authorize('delete',Pet::class);
         $pet = Pet::findOrFail($id);
-        if($pet->photo){
-            Storage::delete($pet->photo);
+        if($pet->avatar){
+            Storage::delete($pet->avatar);
         }
         $pet->delete();
 

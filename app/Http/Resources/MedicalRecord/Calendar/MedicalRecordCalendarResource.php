@@ -58,7 +58,7 @@ class MedicalRecordCalendarResource extends JsonResource
                     "name" => $resource->pet->name,
                     "specie" => $resource->pet->specie,
                     "breed" => $resource->pet->breed,
-                    "photo" => env("APP_URL")."storage/".$resource->pet->photo,
+                    "avatar" => env("APP_URL")."storage/".$resource->pet->avatar,
                     "owner" => [
                         "id" =>$resource->pet->owner->id,
                         "names"  =>$resource->pet->owner->names,
