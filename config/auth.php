@@ -44,6 +44,11 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
+        #TODO agregamos el guard para realizar los api
+        'owner-api' => [
+            'driver' => 'sanctum',
+            'provider' => 'owners',
+        ]
     ],
 
     /*
@@ -68,6 +73,9 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
+        #TODO agregamos el modelo owner en los providers para realizar la authenticacion por aplicativo
+        'owners' => 'eloquent',
+        'model' => App\Models\Pets\Owner::class,
 
         // 'users' => [
         //     'driver' => 'database',

@@ -23,6 +23,11 @@ class Owner extends Model
         'emergency_contact',
     ];
 
+    #TODO Aregamos el password para el login desde el aplicativo
+    protected $hidden = [
+        'password','remember_token'
+    ];
+
     public function setCreatedAtAttribute($value)
     {
     	date_default_timezone_set('America/Lima');

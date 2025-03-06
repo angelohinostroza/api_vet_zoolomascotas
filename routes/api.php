@@ -12,6 +12,7 @@ use App\Http\Controllers\Kpi\KpiController;
 use App\Http\Controllers\Vaccination\VaccinationController;
 use App\Http\Controllers\Veterinarie\VeterinarieController;
 use App\Http\Controllers\MedicalRecord\MedicalRecordController;
+use App\Http\Controllers\Owners\OwnerController;
 
 Route::group([
     //'middleware' => 'api',
@@ -81,3 +82,10 @@ Route::get("vaccination-excel",[VaccinationController::class,"downloadExcel"]);
 Route::get("surgeries-excel",[SurgerieController::class,"downloadExcel"]);
 Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 
+
+Route::post('/login', [OwnerController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+});
