@@ -83,9 +83,10 @@ Route::get("surgeries-excel",[SurgerieController::class,"downloadExcel"]);
 Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 
 
-Route::post('/login', [OwnerController::class, 'login']);
+// RUTA DE LOGIN DESDE EL APLICATIVO MOVIL
+Route::post('/login-app', [OwnerController::class, 'login']);
+
+// RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+
 });

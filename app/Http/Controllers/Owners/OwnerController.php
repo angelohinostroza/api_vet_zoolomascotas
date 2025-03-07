@@ -34,8 +34,8 @@ class OwnerController extends Controller
            Auth::shouldUse('owner-api');
 
            return response()->json([
-               'token' => $owner->createToken('auth-token')->plainTextToken,
-               'owner' => $owner,
+               'token' => $owner->createToken('auth-token')->plainTextToken, // GENERAMOS API TOKEN
+               'owner' => $owner->makeHidden(['password','remember_token']), //Ocultamos la contraseña para no enviarla al App
            ]);
        }
        catch (\Exception $e) {
