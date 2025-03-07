@@ -74,8 +74,10 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
         #TODO agregamos el modelo owner en los providers para realizar la authenticacion por aplicativo
-        'owners' => 'eloquent',
-        'model' => App\Models\Pets\Owner::class,
+        'owners' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Pets\Owner::class
+        ]
 
         // 'users' => [
         //     'driver' => 'database',

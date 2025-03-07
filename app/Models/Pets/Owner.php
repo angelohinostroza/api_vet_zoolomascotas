@@ -3,12 +3,15 @@
 namespace App\Models\Pets;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Sanctum\HasApiTokens;
 
-class Owner extends Model
+class Owner extends Authenticatable
 {
+    ##TODO necesario para usar createToken() en el controller
+    use HasApiTokens;
     use HasFactory;
     use SoftDeletes;
     protected $fillable = [

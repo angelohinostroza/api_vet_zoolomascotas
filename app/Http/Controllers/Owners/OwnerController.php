@@ -30,6 +30,9 @@ class OwnerController extends Controller
                ]);
            }
 
+           // 🔹 Especificar el guard correcto
+           Auth::shouldUse('owner-api');
+
            return response()->json([
                'token' => $owner->createToken('auth-token')->plainTextToken,
                'owner' => $owner,
