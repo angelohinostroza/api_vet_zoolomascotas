@@ -14,6 +14,7 @@ class Owner extends Authenticatable
     use HasApiTokens;
     use HasFactory;
     use SoftDeletes;
+
     protected $fillable = [
         'names',
         'surnames',
@@ -28,22 +29,29 @@ class Owner extends Authenticatable
 
     #TODO Aregamos el password para el login desde el aplicativo
     protected $hidden = [
-        'password','remember_token'
+        'password', 'remember_token'
     ];
 
     public function setCreatedAtAttribute($value)
     {
-    	date_default_timezone_set('America/Lima');
-        $this->attributes["created_at"]= Carbon::now();
+        date_default_timezone_set('America/Lima');
+        $this->attributes["created_at"] = Carbon::now();
     }
 
     public function setUpdatedAtAttribute($value)
     {
-    	date_default_timezone_set("America/Lima");
-        $this->attributes["updated_at"]= Carbon::now();
+        date_default_timezone_set("America/Lima");
+        $this->attributes["updated_at"] = Carbon::now();
     }
 
-    public function pet(){
-        return $this->belongsTo(Pet::class,"owner_id");
+    #TODO se modifica la relacion, con hasMany, como un dueño puede tener muchas mascotas, la relacion sera hasMany
+    #tener en cuenta si algo modificar en el web
+//    public function pet(){
+//        return $this->belongsTo(Pet::class,"owner_id");
+//    }
+
+    public function pet()
+    {
+        return $this->hasMany(Pet::class,"owner_id");
     }
 }

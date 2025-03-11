@@ -87,6 +87,9 @@ Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 Route::post('/login-app', [OwnerController::class, 'login']);
 
 // RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
-Route::middleware('auth:sanctum')->group(function () {
+//Route::middleware('auth:sanctum')->group(function () {
+//    Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
+//});
 
-});
+
+Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas

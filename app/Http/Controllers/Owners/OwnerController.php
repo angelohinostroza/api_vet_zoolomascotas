@@ -45,6 +45,15 @@ class OwnerController extends Controller
        }
     }
 
+    #TODO funcion para obtener las mascotas del dueño
+    public static function getOwnerPets($ownerId){
+        $owner = Owner::with('pet')->find($ownerId);
+        if(!$owner){
+            return response()->json(['message'=> 'Owner not found'],404);
+        }
+        return response()->json($owner->pet);
+    }
+
     /**
      * Display a listing of the resource.
      */
