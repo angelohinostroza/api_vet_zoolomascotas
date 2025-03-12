@@ -84,12 +84,13 @@ Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 
 
 // RUTA DE LOGIN DESDE EL APLICATIVO MOVIL
-Route::post('/login-app', [OwnerController::class, 'login']);
+Route::post('app/login-app', [OwnerController::class, 'login']);
 
 // RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
-//Route::middleware('auth:sanctum')->group(function () {
-//    Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
-//});
+Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
+    Route::get('/pets/{id}',[PetsController::class,"getPetById"]);
+});
 
 
-Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
+// Route::get('/pets/{id}',[PetsController::class,"getPetById"]);

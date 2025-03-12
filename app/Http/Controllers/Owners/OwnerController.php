@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Owners;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pets\Owner;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+
 ##########################
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 class OwnerController extends Controller
 {
@@ -16,42 +19,51 @@ class OwnerController extends Controller
     public function login(Request $request)
     {
 
-       try{
-           $request->validate([
-               'email' => 'required|email',
-               'password' => 'required',
-           ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
 
-           $owner = Owner::where('email', $request->email)->first();
+            $owner = Owner::where('email', $request->email)->first();
 
-           if (!$owner || !Hash::check($request->password, $owner->password)) {
-               throw ValidationException::withMessages([
-                   'email' => ['The provided credentials are incorrect.'],
-               ]);
-           }
+            if (!$owner || !Hash::check($request->password, $owner->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
 
-           // 🔹 Especificar el guard correcto
-           Auth::shouldUse('owner-api');
+            // 🔹 Especificar el guard correcto
+            Auth::shouldUse('owner-api');
 
-           return response()->json([
-               'token' => $owner->createToken('auth-token')->plainTextToken, // GENERAMOS API TOKEN
-               'owner' => $owner->makeHidden(['password','remember_token']), //Ocultamos la contraseña para no enviarla al App
-           ]);
-       }
-       catch (\Exception $e) {
-           return response()->json([
-               'message' => 'Error en el servidor: ' . $e->getMessage(),
-           ], 500);
-       }
+            return response()->json([
+                'token' => $owner->createToken('auth-token')->plainTextToken, // GENERAMOS API TOKEN
+                'owner' => $owner->makeHidden(['password', 'remember_token']), //Ocultamos la contraseña para no enviarla al App
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error en el servidor: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     #TODO funcion para obtener las mascotas del dueño
-    public static function getOwnerPets($ownerId){
-        $owner = Owner::with('pet')->find($ownerId);
-        if(!$owner){
-            return response()->json(['message'=> 'Owner not found'],404);
+    public static function getOwnerPets($ownerId)
+    {
+        try {
+            //Buscamos a las mascotas del dueño
+            $owner = Owner::with('pet')->find($ownerId);
+            if (!$owner) {
+                return response()->json(['message' => 'Owner not found'], 404);
+            }
+            return response()->json($owner->pet);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Owner not found'], 404);
+
+        } catch (Exception $e) {
+            return response()->json(["message" => "Error al buscar la mascota",
+                "error" => $e->getMessage()], 500);
         }
-        return response()->json($owner->pet);
     }
 
     /**
