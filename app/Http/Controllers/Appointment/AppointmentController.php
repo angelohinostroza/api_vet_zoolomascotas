@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Appointment;
 
 use Carbon\Carbon;
 use App\Models\Pets\Pet;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
 use App\Models\Surgerie\Surgerie;
@@ -333,4 +334,73 @@ class AppointmentController extends Controller
             "message" => 200,
         ]);
     }
+
+    #TODO realizamos la funcion para consumir desde la app, todas las citas de la mascota
+    public function getAppointmentsByPetId($petId)
+    {
+        try {
+            // Verificamos si la mascota existe antes de consultar
+            $petExists = DB::table('pets')->where('id', $petId)->exists();
+            if (!$petExists) {
+                return response()->json(['message' => 'Pet not found'], 404);
+            }
+
+            // Ejecutamos la consulta de las citas
+            $appointments = DB::table('appointments as ap')
+                ->join('users as u', 'ap.veterinarie_id', '=', 'u.id')
+                ->join('pets as p', 'ap.pet_id', '=', 'p.id')
+                ->join('appointment_schedules as aps', 'ap.id', '=', 'aps.appointment_id')
+                ->join('veterinarie_schedule_hours as vsh', 'aps.veterinarie_schedule_hour_id', '=', 'vsh.id')
+                ->select(
+                    'ap.id',
+                    DB::raw("CONCAT(u.name, ' ', u.surname) AS veterinary"),
+                    'ap.day',
+                    'ap.date_appointment',
+                    'ap.reason',
+                    DB::raw("
+                    CASE
+                        WHEN ap.reprogramar = 0 THEN 'Programado'
+                        WHEN ap.reprogramar = 1 THEN 'Reprogramado'
+                    END AS reschedule
+                "),
+                    DB::raw("
+                    CASE
+                        WHEN ap.state = 1 THEN 'Pendiente'
+                        WHEN ap.state = 2 THEN 'Cancelado'
+                        WHEN ap.state = 3 THEN 'Atendido'
+                    END AS state
+                "),
+                    DB::raw("
+                    CASE
+                        WHEN ap.state_pay = 1 THEN 'Pendiente'
+                        WHEN ap.state_pay = 2 THEN 'Parcial'
+                        WHEN ap.state_pay = 3 THEN 'Completo'
+                    END AS state_pay
+                "),
+                    'ap.amount',
+                    'vsh.hour_start',
+                    'vsh.hour_end'
+                )
+                ->where('p.id', $petId)
+                ->get();
+
+            // Si no hay citas, devolvemos un mensaje adecuado
+            if ($appointments->isEmpty()) {
+                return response()->json('No appointments found for this pet', 404);
+            }
+
+            return response()->json($appointments, 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Database query error',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Unexpected error retrieving appointments',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

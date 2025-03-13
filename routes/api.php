@@ -90,6 +90,9 @@ Route::post('app/login-app', [OwnerController::class, 'login']);
 Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
     Route::get('/pets/{id}',[PetsController::class,"getPetById"]);
+    Route::get('/pets/{id}/appointments',[AppointmentController::class,"getAppointmentsByPetId"]);
+    Route::get('/pets/{id}/surgeries',[SurgerieController::class,"getSurgeriesByPetId"]);
+    Route::get('/pets/{id}/vaccinations',[VaccinationController::class,"getVaccinationsByPetId"]);
 });
 
 

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Surgerie;
 
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
 use App\Exports\DownloadSurgerie;
 use App\Models\Surgerie\Surgerie;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Surgerie\SurgeriePayment;
@@ -23,7 +25,7 @@ class SurgerieController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('viewAny',Surgerie::class);
+        Gate::authorize('viewAny', Surgerie::class);
         $type_date = $request->type_date;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
@@ -34,7 +36,7 @@ class SurgerieController extends Controller
         $search_vets = $request->search_vets;
         $user = auth('api')->user();
 
-        $surgeries = Surgerie::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets, $user)->orderBy("id","desc")->paginate(4);
+        $surgeries = Surgerie::filterMultiple($type_date, $start_date, $end_date, $state_pay, $state, $specie, $search_pets, $search_vets, $user)->orderBy("id", "desc")->paginate(4);
 
         return response()->json([
             "total_page" => $surgeries->lastPage(),
@@ -42,7 +44,8 @@ class SurgerieController extends Controller
         ]);
     }
 
-    public function downloadExcel(Request $request){
+    public function downloadExcel(Request $request)
+    {
 
         $type_date = $request->get("type_date");
         $start_date = $request->get("start_date");
@@ -53,17 +56,18 @@ class SurgerieController extends Controller
         $search_pets = $request->get("search_pets");
         $search_vets = $request->get("search_vets");
 
-        $surgeries = Surgerie::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets)
-        ->orderBy("id","desc")->get();
+        $surgeries = Surgerie::filterMultiple($type_date, $start_date, $end_date, $state_pay, $state, $specie, $search_pets, $search_vets)
+            ->orderBy("id", "desc")->get();
 
-        return Excel::download(new DownloadSurgerie($surgeries),"listado_de_cirugias_reporte.xlsx");
+        return Excel::download(new DownloadSurgerie($surgeries), "listado_de_cirugias_reporte.xlsx");
     }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        Gate::authorize('create',Surgerie::class);
+        Gate::authorize('create', Surgerie::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -83,7 +87,7 @@ class SurgerieController extends Controller
 
         MedicalRecord::create([
             "veterinarie_id" => $surgerie->veterinarie_id,
-            "pet_id"=> $surgerie->pet_id,
+            "pet_id" => $surgerie->pet_id,
             "event_type" => 3,
             "event_date" => $surgerie->date_appointment,
             "surgerie_id" => $surgerie->id,
@@ -114,7 +118,7 @@ class SurgerieController extends Controller
      */
     public function show(string $id)
     {
-        Gate::authorize('view',Surgerie::class);
+        Gate::authorize('view', Surgerie::class);
         $surgerie = Surgerie::findOrFail($id);
         return response()->json([
             "surgerie" => SurgerieResource::make($surgerie),
@@ -126,17 +130,17 @@ class SurgerieController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        Gate::authorize('update',Surgerie::class);;
+        Gate::authorize('update', Surgerie::class);;
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
         $surgerie = Surgerie::findOrFail($id);
         // $request->amount ->al costo de la cita medica que se quiere editar = 40
         // $surgerie->payments->sum("amount") -> a los pagos realizados de la cita medica = 50
-        if($request->amount < $surgerie->payments->sum("amount")){
+        if ($request->amount < $surgerie->payments->sum("amount")) {
             return response()->json([
                 "message" => 403,
-                "message_text" => "El costo de la cirugía no puede ser menor a lo cancelado (".$surgerie->payments->sum("amount")." PEN)",
+                "message_text" => "El costo de la cirugía no puede ser menor a lo cancelado (" . $surgerie->payments->sum("amount") . " PEN)",
             ]);
         }
         $surgerie->update([
@@ -158,16 +162,16 @@ class SurgerieController extends Controller
             "pet_id" => $request->pet_id,
             "notes" => $request->outcome,
         ]);
-        if($request->amount == $surgerie->payments->sum("amount")){
+        if ($request->amount == $surgerie->payments->sum("amount")) {
             $surgerie->update([
                 "state_pay" => 3,
             ]);
-        }else{
+        } else {
             $surgerie->update([
                 "state_pay" => 2,
             ]);
         }
-        if($request->date_appointment){
+        if ($request->date_appointment) {
             $surgerie->update([
                 "date_appointment" => $request->date_appointment,
                 "reprogramar" => 1,
@@ -176,7 +180,7 @@ class SurgerieController extends Controller
                 "event_date" => $request->date_appointment,
             ]);
         }
-        if(sizeof($request->selected_segment_times) > 0){
+        if (sizeof($request->selected_segment_times) > 0) {
             foreach ($surgerie->schedules as $key => $schedule) {
                 $schedule->delete();
             }
@@ -199,9 +203,9 @@ class SurgerieController extends Controller
      */
     public function destroy(string $id)
     {
-        Gate::authorize('delete',Surgerie::class);
+        Gate::authorize('delete', Surgerie::class);
         $surgerie = Surgerie::findOrFail($id);
-        if($surgerie->state == 3){
+        if ($surgerie->state == 3) {
             return response()->json([
                 "message" => 403,
             ]);
@@ -212,5 +216,71 @@ class SurgerieController extends Controller
         return response()->json([
             "message" => 200,
         ]);
+    }
+
+    /*#TODO funcion para obtener las cirugias para la app */
+    public function getSurgeriesByPetId($pet_id)
+    {
+        try {
+            $surgeries = DB::table('surgeries as s')
+                ->join('users as u', 's.veterinarie_id', '=', 'u.id')
+                ->select(
+                    DB::raw("CONCAT(u.name, ' ', u.surname) AS veterinary"),
+                    's.day',
+                    's.date_appointment',
+                    's.surgerie_type',
+                    's.medical_notes',
+                    DB::raw("
+                        CASE
+                            WHEN s.state = 1 THEN 'Pendiente'
+                            WHEN s.state = 2 THEN 'Cancelado'
+                            WHEN s.state = 3 THEN 'Atendido'
+                        END AS state
+                    "),
+                    DB::raw("
+                        CASE
+                            WHEN s.outside = 0 THEN 'Internación'
+                            WHEN s.outside = 1 THEN 'Ambulatorio'
+                        END AS outside
+                    "),
+                    DB::raw("
+                        CASE
+                            WHEN s.reprogramar = 0 THEN 'Programado'
+                            WHEN s.reprogramar = 1 THEN 'Reprogramado'
+                        END AS reschedule
+                    "),
+                    's.amount',
+                    DB::raw("
+                        CASE
+                            WHEN s.state_pay = 1 THEN 'Pendiente'
+                            WHEN s.state_pay = 2 THEN 'Parcial'
+                            WHEN s.state_pay = 3 THEN 'Completo'
+                        END AS state_pay
+                    ")
+                )
+                ->where('s.pet_id', $pet_id)
+                ->get();
+
+            // Si no hay cirugías, retornamos una respuesta vacía con código 404
+            if ($surgeries->isEmpty()) {
+                return response()->json(
+                    'No se encontraron cirugías para esta mascota.'
+                    , 404);
+            }
+
+            // Retornar la respuesta con estado 200
+            return response()->json($surgeries, 200);
+
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Database query error',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Ocurrió un error al obtener las cirugías.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

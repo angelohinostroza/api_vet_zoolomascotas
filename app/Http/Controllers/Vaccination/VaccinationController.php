@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vaccination;
 
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
 use App\Exports\DownloadVaccination;
@@ -23,7 +24,7 @@ class VaccinationController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('viewAny',Vaccination::class);
+        Gate::authorize('viewAny', Vaccination::class);
         $type_date = $request->type_date;
         $start_date = $request->start_date;
         $end_date = $request->end_date;
@@ -34,7 +35,7 @@ class VaccinationController extends Controller
         $search_vets = $request->search_vets;
         $user = auth('api')->user();
 
-        $vaccinations = Vaccination::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets,$user)->orderBy("id","desc")->paginate(4);
+        $vaccinations = Vaccination::filterMultiple($type_date, $start_date, $end_date, $state_pay, $state, $specie, $search_pets, $search_vets, $user)->orderBy("id", "desc")->paginate(4);
 
         return response()->json([
             "total_page" => $vaccinations->lastPage(),
@@ -42,7 +43,8 @@ class VaccinationController extends Controller
         ]);
     }
 
-    public function downloadExcel(Request $request){
+    public function downloadExcel(Request $request)
+    {
 
         $type_date = $request->get("type_date");
         $start_date = $request->get("start_date");
@@ -53,16 +55,17 @@ class VaccinationController extends Controller
         $search_pets = $request->get("search_pets");
         $search_vets = $request->get("search_vets");
 
-        $vaccinations = Vaccination::filterMultiple($type_date,$start_date,$end_date,$state_pay,$state,$specie,$search_pets,$search_vets)->orderBy("id","desc")->get();
+        $vaccinations = Vaccination::filterMultiple($type_date, $start_date, $end_date, $state_pay, $state, $specie, $search_pets, $search_vets)->orderBy("id", "desc")->get();
 
-        return Excel::download(new DownloadVaccination($vaccinations),"listado_de_vacunacion_reporte.xlsx");
+        return Excel::download(new DownloadVaccination($vaccinations), "listado_de_vacunacion_reporte.xlsx");
     }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        Gate::authorize('create',Vaccination::class);
+        Gate::authorize('create', Vaccination::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
@@ -82,7 +85,7 @@ class VaccinationController extends Controller
 
         MedicalRecord::create([
             "veterinarie_id" => $vaccination->veterinarie_id,
-            "pet_id"=> $vaccination->pet_id,
+            "pet_id" => $vaccination->pet_id,
             "event_type" => 2,
             "event_date" => $vaccination->date_appointment,
             "vaccination_id" => $vaccination->id,
@@ -112,7 +115,7 @@ class VaccinationController extends Controller
      */
     public function show(string $id)
     {
-        Gate::authorize('view',Vaccination::class);
+        Gate::authorize('view', Vaccination::class);
         $vaccination = Vaccination::findOrFail($id);
         return response()->json([
             "vaccination" => VaccinationResource::make($vaccination),
@@ -124,17 +127,17 @@ class VaccinationController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        Gate::authorize('update',Vaccination::class);
+        Gate::authorize('update', Vaccination::class);
         date_default_timezone_set('America/Lima');
         Carbon::setLocale('es');
         $dayName = Carbon::parse($request->date_appointment)->dayName;
         $vaccination = Vaccination::findOrFail($id);
         // $request->amount ->al costo de la cita medica que se quiere editar = 40
         // $vaccination->payments->sum("amount") -> a los pagos realizados de la cita medica = 50
-        if($request->amount < $vaccination->payments->sum("amount")){
+        if ($request->amount < $vaccination->payments->sum("amount")) {
             return response()->json([
                 "message" => 403,
-                "message_text" => "El costo de la cita medica no puede ser menor a lo cancelado (".$vaccination->payments->sum("amount")." PEN)",
+                "message_text" => "El costo de la cita medica no puede ser menor a lo cancelado (" . $vaccination->payments->sum("amount") . " PEN)",
             ]);
         }
         $vaccination->update([
@@ -155,16 +158,16 @@ class VaccinationController extends Controller
             "veterinarie_id" => $request->veterinarie_id,
             "pet_id" => $request->pet_id,
         ]);
-        if($request->amount == $vaccination->payments->sum("amount")){
+        if ($request->amount == $vaccination->payments->sum("amount")) {
             $vaccination->update([
                 "state_pay" => 3,
             ]);
-        }else{
+        } else {
             $vaccination->update([
                 "state_pay" => 2,
             ]);
         }
-        if($request->date_appointment){
+        if ($request->date_appointment) {
             $vaccination->update([
                 "date_appointment" => $request->date_appointment,
                 "reprogramar" => 1,
@@ -173,7 +176,7 @@ class VaccinationController extends Controller
                 "event_date" => $request->date_appointment,
             ]);
         }
-        if(sizeof($request->selected_segment_times) > 0){
+        if (sizeof($request->selected_segment_times) > 0) {
             foreach ($vaccination->schedules as $key => $schedule) {
                 $schedule->delete();
             }
@@ -196,9 +199,9 @@ class VaccinationController extends Controller
      */
     public function destroy(string $id)
     {
-        Gate::authorize('delete',Vaccination::class);
+        Gate::authorize('delete', Vaccination::class);
         $vaccination = Vaccination::findOrFail($id);
-        if($vaccination->state == 3){
+        if ($vaccination->state == 3) {
             return response()->json([
                 "message" => 403,
             ]);
@@ -209,5 +212,65 @@ class VaccinationController extends Controller
         return response()->json([
             "message" => 200,
         ]);
+    }
+
+    //#TODO funcion para obtener las vacunas de una mascota
+    public function getVaccinationsByPetId($petId)
+    {
+        try {
+            $vaccinations = DB::table('vaccinations as v')
+                ->join('users as u', 'v.veterinarie_id', '=', 'u.id')
+                ->select(
+                    DB::raw("CONCAT(u.name, ' ', u.surname) AS veterinary"),
+                    'v.vaccine_names',
+                    'v.day',
+                    'v.date_appointment',
+                    'v.nex_due_date',
+                    'v.reason',
+                    DB::raw("CASE
+                        WHEN v.state = 1 THEN 'Pendiente'
+                        WHEN v.state = 2 THEN 'Cancelado'
+                        WHEN v.state = 3 THEN 'Atendido'
+                    END AS state"),
+                    DB::raw("CASE
+                        WHEN v.outside = 0 THEN 'Internacion'
+                        WHEN v.outside = 1 THEN 'Ambulatorio'
+                    END AS outside"),
+                    DB::raw("CASE
+                        WHEN v.reprogramar = 0 THEN 'Programado'
+                        WHEN v.reprogramar = 1 THEN 'Reprogramado'
+                    END AS reschedule"),
+                    'v.amount',
+                    DB::raw("CASE
+                        WHEN v.state_pay = 1 THEN 'Pendiente'
+                        WHEN v.state_pay = 2 THEN 'Parcial'
+                        WHEN v.state_pay = 3 THEN 'Completo'
+                    END AS state_pay")
+                )
+                ->where('v.pet_id', $petId)
+                ->get();
+
+            // Si no hay cirugías, retornamos una respuesta vacía con código 404
+            if ($vaccinations->isEmpty()) {
+                return response()->json(
+                    'No se encontraron vacunas para esta mascota.'
+                    , 404);
+            }
+
+            return response()->json($vaccinations, 200);
+        }
+        catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Database query error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las vacunas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
