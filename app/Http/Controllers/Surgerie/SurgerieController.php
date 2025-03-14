@@ -233,7 +233,7 @@ class SurgerieController extends Controller
                     DB::raw("
                         CASE
                             WHEN s.state = 1 THEN 'Pendiente'
-                            WHEN s.state = 2 THEN 'Cancelado'
+                             WHEN s.state = 2 THEN 'Cancelado'
                             WHEN s.state = 3 THEN 'Atendido'
                         END AS state
                     "),

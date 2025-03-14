@@ -16,7 +16,8 @@ use PhpOffice\PhpSpreadsheet\Exception;
 class OwnerController extends Controller
 {
 
-    public function login(Request $request)
+    // #TODO funcion para realizar el login desde el aplicativo
+    public function loginOwnerApp(Request $request)
     {
 
         try {

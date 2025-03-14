@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Validator;
 use Illuminate\Support\Facades\Gate;
 
@@ -112,5 +116,35 @@ class AuthController extends Controller
                 "permissions" => $permissions,
             ]
         ]);
+    }
+
+    // #TODO funcion para realizar el login desde el aplicativo
+    public function loginUserApp(Request $request){
+        try{
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+        // bcrypt
+            $user = User::where('email',$request->email)->first();
+            if (!$user || !Hash::check($user->password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            // 🔹 Especificar el guard correcto
+            Auth::shouldUse('user-api');
+
+            return response()->json([
+                'token' => $user->createToken('auth-token')->plainTextToken, // GENERAMOS API TOKEN
+                'owner' => $user->makeHidden(['password', 'remember_token']), //Ocultamos la contraseña para no enviarla al App
+            ], 200);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error en el servidor: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

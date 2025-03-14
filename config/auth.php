@@ -44,10 +44,15 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
-        #TODO agregamos el guard para realizar los api
+        #TODO agregamos el guard para realizar los api INICIO SESION OWNERS
         'owner-api' => [
             'driver' => 'sanctum',
             'provider' => 'owners',
+        ],
+        #TODO agregamos el guard para realizar los api INICIO SESION USERS
+        'user-api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users_app',
         ]
     ],
 
@@ -77,12 +82,13 @@ return [
         'owners' => [
             'driver' => 'eloquent',
             'model' => App\Models\Pets\Owner::class
-        ]
+        ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        #TODO agregamos el USER owner en los providers para realizar la authenticacion por aplicativo
+        'users_app' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class
+        ]
     ],
 
     /*

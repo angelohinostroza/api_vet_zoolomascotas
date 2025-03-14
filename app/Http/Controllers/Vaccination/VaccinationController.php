@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
 use App\Exports\DownloadVaccination;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Vaccination\Vaccination;

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Pets\PetResource;
 use App\Http\Resources\Pets\PetCollection;
@@ -65,6 +66,8 @@ class PetsController extends Controller
             'address' => $request->address,
             'city' => $request->city,
             'emergency_contact' => $request->emergency_contact,
+//            #TODO Agregamos el nuevo cammpo password, sera el numero de documento encriptado
+            'password' => Hash::make( $request->n_document),
         ]);
 
         $request->request->add([
