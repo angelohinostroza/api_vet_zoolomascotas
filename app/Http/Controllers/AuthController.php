@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Validator;
 use Illuminate\Support\Facades\Gate;
@@ -19,9 +20,10 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register() {
+    public function register()
+    {
 
-        Gate::authorize('create',User::class);
+        Gate::authorize('create', User::class);
 
         $validator = Validator::make(request()->all(), [
             'name' => 'required',
@@ -29,7 +31,7 @@ class AuthController extends Controller
             'password' => 'required|min:8',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors()->toJson(), 400);
         }
 
@@ -52,7 +54,7 @@ class AuthController extends Controller
     {
         $credentials = request(['email', 'password']);
 
-        if (! $token = auth('api')->attempt($credentials)) {
+        if (!$token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Email o contraseña incorrecta, intenta nuevamente'], 401);
         }
 
@@ -94,13 +96,13 @@ class AuthController extends Controller
     /**
      * Get the token array structure.
      *
-     * @param  string $token
+     * @param string $token
      *
      * @return \Illuminate\Http\JsonResponse
      */
     protected function respondWithToken($token)
     {
-        $permissions = auth('api')->user()->getAllPermissions()->map(function($permission) {
+        $permissions = auth('api')->user()->getAllPermissions()->map(function ($permission) {
             return $permission->name;
         });
         return response()->json([
@@ -111,7 +113,7 @@ class AuthController extends Controller
                 "name" => auth('api')->user()->name,
                 "surname" => auth('api')->user()->surname,
                 "email" => auth('api')->user()->email,
-                "avatar" => auth('api')->user()->avatar ? env("APP_URL")."storage/".auth('api')->user()->avatar : null,
+                "avatar" => auth('api')->user()->avatar ? env("APP_URL") . "storage/" . auth('api')->user()->avatar : null,
                 "role" => auth('api')->user()->role,
                 "permissions" => $permissions,
             ]
@@ -119,15 +121,24 @@ class AuthController extends Controller
     }
 
     // #TODO funcion para realizar el login desde el aplicativo
-    public function loginUserApp(Request $request){
-        try{
+    public function loginUserApp(Request $request)
+    {
+        try {
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required',
             ]);
-        // bcrypt
-            $user = User::where('email',$request->email)->first();
-            if (!$user || !Hash::check($user->password, $user->password)) {
+            // bcrypt
+            $user = User::where('email', $request->email)->first();
+
+//            if (!$user) {
+//                Log::warning('Intento de login con email no registrado:', ['email' => $request->email]);
+//            } else {
+//                Log::info('Usuario encontrado:', ['user' => $user->toArray()]);
+//            }
+
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
                 throw ValidationException::withMessages([
                     'email' => ['The provided credentials are incorrect.'],
                 ]);
@@ -136,15 +147,42 @@ class AuthController extends Controller
             // 🔹 Especificar el guard correcto
             Auth::shouldUse('user-api');
 
-            return response()->json([
+            $response = [
                 'token' => $user->createToken('auth-token')->plainTextToken, // GENERAMOS API TOKEN
-                'owner' => $user->makeHidden(['password', 'remember_token']), //Ocultamos la contraseña para no enviarla al App
-            ], 200);
-        }
-        catch (\Exception $e) {
+                'user' => $user->makeHidden(['password', 'remember_token']), //Ocultamos la contraseña para no enviarla al App
+                'role' => $user->role ? $user->role->name : 'SinRol', //enviamos el rol del usuario
+            ];
+            // 🔹 Imprimir la respuesta antes de devolverla
+            //Log::info('Respuesta de login:', $response); // 🔹 Registra la respuesta
+            return response()->json($response, 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error en login:', ['error' => $e->getMessage()]); // 🔹 Registra el error
+
             return response()->json([
                 'message' => 'Error en el servidor: ' . $e->getMessage(),
             ], 500);
         }
     }
+
+    #Funcion para el dashboard del superAdmin
+    public function getUsersForSuperAdmin(Request $request){
+        try {
+            $users = User::with('role') // Cargar la relación con roles
+            ->select('id', 'name', 'surname', 'email', 'phone', 'role_id', 'avatar', 'created_at')
+                ->get();
+
+            return response()->json([
+                'users' => $users
+            ]);
+        }
+        catch (\Exception $e) {
+            Log::error('Error en login:', ['error' => $e->getMessage()]); // 🔹 Registra el error
+
+            return response()->json([
+                'message' => 'Error en el servidor: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

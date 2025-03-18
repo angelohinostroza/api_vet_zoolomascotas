@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
@@ -18,6 +19,9 @@ class User extends Authenticatable implements JWTSubject
     use HasFactory, Notifiable;
     use HasRoles;
     use SoftDeletes;
+    #TODO agregamos HasApiTokens para la autenticacion basada en tokens en el modelo usuario
+    use HasApiTokens;
+    use Notifiable;
     /**
      * The attributes that are mass assignable.
      *

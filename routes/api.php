@@ -84,8 +84,8 @@ Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 
 
 // RUTA DE LOGIN DESDE EL APLICATIVO MOVIL
-Route::post('app/login-app', [OwnerController::class, 'loginOwnerApp']);
-Route::post('app/user-app', [AuthController::class, 'loginUserApp']);
+Route::post('app/owner-login-app', [OwnerController::class, 'loginOwnerApp']);
+Route::post('app/user-login-app', [AuthController::class, 'loginUserApp']);
 
 // RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
 Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
@@ -94,6 +94,10 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/pets/{id}/appointments',[AppointmentController::class,"getAppointmentsByPetId"]);
     Route::get('/pets/{id}/surgeries',[SurgerieController::class,"getSurgeriesByPetId"]);
     Route::get('/pets/{id}/vaccinations',[VaccinationController::class,"getVaccinationsByPetId"]);
+
+    //Dasboard Super Admin
+    Route::get('/dash-users',[AuthController::class,"getUsersForSuperAdmin"]);
+
 });
 
 

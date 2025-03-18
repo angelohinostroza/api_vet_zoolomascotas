@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class Owner extends Authenticatable
@@ -14,6 +15,7 @@ class Owner extends Authenticatable
     use HasApiTokens;
     use HasFactory;
     use SoftDeletes;
+    use Notifiable;
 
     protected $fillable = [
         'names',
