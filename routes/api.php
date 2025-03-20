@@ -13,6 +13,7 @@ use App\Http\Controllers\Vaccination\VaccinationController;
 use App\Http\Controllers\Veterinarie\VeterinarieController;
 use App\Http\Controllers\MedicalRecord\MedicalRecordController;
 use App\Http\Controllers\Owners\OwnerController;
+use App\Http\Controllers\DashboardApp\DashboardAppController;
 
 Route::group([
     //'middleware' => 'api',
@@ -82,23 +83,44 @@ Route::get("vaccination-excel",[VaccinationController::class,"downloadExcel"]);
 Route::get("surgeries-excel",[SurgerieController::class,"downloadExcel"]);
 Route::get("payments-excel",[PaymentController::class,"downloadExcel"]);
 
-
+###################### DESDE AQUI SON RUTAS PARA EL APLICATIVO ##########################
 // RUTA DE LOGIN DESDE EL APLICATIVO MOVIL
 Route::post('app/owner-login-app', [OwnerController::class, 'loginOwnerApp']);
 Route::post('app/user-login-app', [AuthController::class, 'loginUserApp']);
 
 // RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
 Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
-    Route::get('/owners/{id}/pets',[OwnerController::class,"getOwnerPets"]); #TODO agregamos la ruta para obtener las mascotas
-    Route::get('/pets/{id}',[PetsController::class,"getPetById"]);
-    Route::get('/pets/{id}/appointments',[AppointmentController::class,"getAppointmentsByPetId"]);
-    Route::get('/pets/{id}/surgeries',[SurgerieController::class,"getSurgeriesByPetId"]);
-    Route::get('/pets/{id}/vaccinations',[VaccinationController::class,"getVaccinationsByPetId"]);
 
-    //Dasboard Super Admin
-    Route::get('/dash-users',[AuthController::class,"getUsersForSuperAdmin"]);
+    // DUEÑOS Y SUS MASCOTAS
+    Route::prefix('owners')->group(function () {
+        Route::get('/', [OwnerController::class, 'index']); // Obtener todos los dueños
+        Route::get('/{id}', [OwnerController::class, 'show']); // Obtener un dueño por ID
+        Route::post('/', [OwnerController::class, 'store']); // Crear un dueño
+        Route::put('/{id}', [OwnerController::class, 'update']); // Actualizar un dueño
+        Route::delete('/{id}', [OwnerController::class, 'destroy']); // Eliminar (soft delete)
+
+        Route::get('/{id}/pets', [OwnerController::class, 'getOwnerPets']); // Obtener mascotas de un dueño
+    });
+
+    //  MASCOTAS Y SU HISTORIAL MÉDICO
+    Route::prefix('pets')->group(function () {
+        Route::get('/{id}', [PetsController::class, 'getPetById']); // Obtener una mascota
+        Route::get('/{id}/appointments', [AppointmentController::class, 'getAppointmentsByPetId']); // Citas médicas
+        Route::get('/{id}/surgeries', [SurgerieController::class, 'getSurgeriesByPetId']); // Cirugías
+        Route::get('/{id}/vaccinations', [VaccinationController::class, 'getVaccinationsByPetId']); // Vacunaciones
+    });
+
+    // DASHBOARD SUPER ADMIN - GESTION DE USUARIOS
+    Route::prefix('users')->group(function () {
+        Route::get('/', [AuthController::class, 'getUsersForSuperAdmin']); // Obtener usuarios
+        Route::put('/{id}', [AuthController::class, 'updateUser']); // Actualizar usuario
+        Route::delete('/{id}', [AuthController::class, 'destroyUser']); // Eliminar usuario (soft delete)
+    });
+
+    // METRICAS DEL DASHBOARD
+    Route::get('/dashboard/metrics', [DashboardAppController::class, 'getDashboardAppMetrics']); // Obtener métricas
 
 });
 
 
-// Route::get('/pets/{id}',[PetsController::class,"getPetById"]);
+Route::get('pete/', [OwnerController::class, 'index']); // Obtener todos los dueños

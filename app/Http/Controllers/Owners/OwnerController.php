@@ -72,7 +72,14 @@ class OwnerController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $owners = Owner::whereNull('deleted_at')->get();
+            return response()->json([
+                'message' => 'Listado Completo de Dueños',
+                'data' => $owners], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al obtener los dueños', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -88,7 +95,12 @@ class OwnerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $owner = Owner::create($request->all());
+            return response()->json(['message' => 'Dueño creado correctamente', 'data' => $owner], 201);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al crear el dueño', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -96,7 +108,16 @@ class OwnerController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $owner = Owner::findOrFail($id);
+            return response()->json([
+                'message' => 'Dueño encontrado correctamente',
+                'data' => $owner], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Dueño no encontrado'], 404);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al obtener el dueño', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -112,7 +133,15 @@ class OwnerController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $owner = Owner::findOrFail($id);
+            $owner->update($request->all());
+            return response()->json(['message' => 'Dueño actualizado correctamente', 'data' => $owner], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Dueño no encontrado'], 404);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al actualizar el dueño', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -120,6 +149,14 @@ class OwnerController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $owner = Owner::findOrFail($id);
+            $owner->update(['deleted_at' => now()]);
+            return response()->json(['message' => 'Dueño eliminado correctamente', 'data' => []], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Dueño no encontrado'], 404);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al eliminar el dueño', 'message' => $e->getMessage()], 500);
+        }
     }
 }

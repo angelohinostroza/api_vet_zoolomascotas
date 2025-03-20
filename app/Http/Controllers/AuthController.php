@@ -166,19 +166,69 @@ class AuthController extends Controller
     }
 
     #Funcion para el dashboard del superAdmin
-    public function getUsersForSuperAdmin(Request $request){
+    public function getUsersForSuperAdmin(Request $request)
+    {
         try {
             $users = User::with('role') // Cargar la relación con roles
-            ->select('id', 'name', 'surname', 'email', 'phone', 'role_id', 'avatar', 'created_at')
+            ->withTrashed()
+                ->select('id', 'name', 'surname', 'email', 'phone', 'role_id', 'avatar', 'created_at', 'deleted_at')
                 ->get();
 
             return response()->json([
                 'users' => $users
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Error en login:', ['error' => $e->getMessage()]); // 🔹 Registra el error
 
+            return response()->json([
+                'message' => 'Error en el servidor: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    #Funcion para actualizar usuarios
+    //
+    public static function updateUser(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            //  Validación de datos para evitar entradas no deseadas
+            $validatedData = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'surname' => 'sometimes|string|max:255',
+                'phone' => 'sometimes|nullable|string|max:20',
+                'role_id' => 'sometimes|exists:roles,id',
+            ]);
+
+            $user->update($validatedData);
+            return response()->json([
+                'message' => 'Usuario actualizado correctamente',
+                'user' => $user, // Devuelve los datos actualizados
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar usuario updateUser:', ['error' => $e->getMessage()]);
+
+
+            return response()->json([
+                'message' => 'Error en el servidor: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroyUser($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->delete(); // Marca el usuario como eliminado
+
+            return response()->json([
+                'message' => 'Usuario eliminado correctamente',
+                'user' => $user, // Devuelve el usuario actualizado
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar usuario destroyUser:', ['error' => $e->getMessage()]);
             return response()->json([
                 'message' => 'Error en el servidor: ' . $e->getMessage(),
             ], 500);
