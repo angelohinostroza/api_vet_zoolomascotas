@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 ##########################
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Exception;
 
@@ -73,7 +74,7 @@ class OwnerController extends Controller
     public function index()
     {
         try {
-            $owners = Owner::whereNull('deleted_at')->get();
+            $owners = Owner::withTrashed()->get();
             return response()->json([
                 'message' => 'Listado Completo de Dueños',
                 'data' => $owners], 200);
@@ -151,12 +152,71 @@ class OwnerController extends Controller
     {
         try {
             $owner = Owner::findOrFail($id);
-            $owner->update(['deleted_at' => now()]);
-            return response()->json(['message' => 'Dueño eliminado correctamente', 'data' => []], 200);
+            $owner->delete();
+            return response()->json(['message' => 'Dueño eliminado correctamente', 'data' => $owner], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Dueño no encontrado'], 404);
         } catch (Exception $e) {
             return response()->json(['error' => 'Error al eliminar el dueño', 'message' => $e->getMessage()], 500);
         }
     }
+    public function toggleActive($id)
+    {
+        $owner = Owner::withTrashed()->find($id);
+
+        if (!$owner) {
+            return response()->json(['message' => 'Dueño no encontrado'], 404);
+        }
+
+        if ($owner->deleted_at) {
+            // Si está eliminado, lo activamos (colocamos deleted_at en null)
+            $owner->restore();
+            return response()->json(['message' => 'Dueño activado con éxito', 'data' => $owner]);
+        } else {
+            // Si está activo, lo desactivamos (registramos la fecha actual en deleted_at)
+            $owner->delete();
+            return response()->json(['message' => 'Dueño desactivado con éxito', 'data' => $owner]);
+        }
+    }
+    public function searchOwners(Request $request)
+    {
+        try {
+            // Obtener los parámetros de la solicitud
+            $query = $request->input('query'); // Cadena de búsqueda
+            // Validar que el parámetro no esté vacío
+            if (!$query) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Por favor, ingresa un término de búsqueda',
+                ], 400);
+            }
+
+            // Realizar la búsqueda en campos de texto
+            $owners = Owner::where(function ($q) use ($query) {
+                $q->where('names', 'LIKE', "%{$query}%")
+                    ->orWhere('surnames', 'LIKE', "%{$query}%")
+                    ->orWhere('email', 'LIKE', "%{$query}%")
+                    ->orWhere('phone', 'LIKE', "%{$query}%")
+                    ->orWhere('address', 'LIKE', "%{$query}%")
+                    ->orWhere('city', 'LIKE', "%{$query}%")
+                    ->orWhere('emergency_contact', 'LIKE', "%{$query}%");
+
+                // Incluir campos numéricos (convertidos a texto)
+                $q->orWhereRaw("CAST(n_document AS TEXT) LIKE ?", ["%{$query}%"]);
+            })->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $owners,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al buscar dueños:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al realizar la búsqueda',
+            ], 500);
+        }
+    }
+
+
 }

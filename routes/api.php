@@ -98,8 +98,10 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
         Route::post('/', [OwnerController::class, 'store']); // Crear un dueño
         Route::put('/{id}', [OwnerController::class, 'update']); // Actualizar un dueño
         Route::delete('/{id}', [OwnerController::class, 'destroy']); // Eliminar (soft delete)
-
         Route::get('/{id}/pets', [OwnerController::class, 'getOwnerPets']); // Obtener mascotas de un dueño
+        Route::put('/toggle-active/{id}', [OwnerController::class, 'toggleActive']); //Activar y desactivar "ELIMINAR deleted_at
+        Route::get('/search',[OwnerController::class,"searchOwners"]);//Buscar Mediante Nombres y Apellidos
+
     });
 
     //  MASCOTAS Y SU HISTORIAL MÉDICO
@@ -123,4 +125,4 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
 });
 
 
-Route::get('pete/', [OwnerController::class, 'index']); // Obtener todos los dueños
+Route::get('/searching',[OwnerController::class,"searchOwners"]);//Buscar Mediante Nombres y Apellidos
