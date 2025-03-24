@@ -74,7 +74,7 @@ class OwnerController extends Controller
     public function index()
     {
         try {
-            $owners = Owner::withTrashed()->get();
+            $owners = Owner::withTrashed()->OrderBy('created_at','desc')->get();
             return response()->json([
                 'message' => 'Listado Completo de Dueños',
                 'data' => $owners], 200);

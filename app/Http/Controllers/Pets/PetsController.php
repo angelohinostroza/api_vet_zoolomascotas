@@ -67,7 +67,7 @@ class PetsController extends Controller
             'city' => $request->city,
             'emergency_contact' => $request->emergency_contact,
 //            #TODO Agregamos el nuevo cammpo password, sera el numero de documento encriptado
-            'password' => Hash::make( $request->n_document),
+            'password' => Hash::make($request->n_document),
         ]);
 
         $request->request->add([
@@ -157,7 +157,7 @@ class PetsController extends Controller
         try {
             //Buscamos la mascota por el ID
             $pet = Pet::findOrFail($id);
-            if(!$pet){
+            if (!$pet) {
                 return response()->json(['message' => 'Pet not found'], 404);
             }
             return response()->json($pet, 200);
@@ -168,4 +168,66 @@ class PetsController extends Controller
                 "error" => $e->getMessage()], 500);
         }
     }
+
+    # METODO PARA EL APP
+    public function indexApp()
+    {
+        try {
+            $pets = Pet::withTrashed()->orderBy('created_at', 'desc')->get();
+            return response()->json([
+                'message' => 'Listado Completo de Mascotas',
+                'data' => $pets
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al obtener las mascotas', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function updateApp(Request $request,string $id){
+        try {
+            $pet = Pet::findOrFail($id);
+            $pet->update($request->all());
+            return response()->json(['message' => 'Mascota actualizada correctamente', 'data' => $pet], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Mascota no encontrado'], 404);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al actualizar la mascota', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function destroyApp(string $id)
+    {
+        try {
+            $pet = Owner::findOrFail($id);
+            $pet->delete();
+            return response()->json(['message' => 'Mascota eliminada correctamente', 'data' => $pet], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Mascota no encontrada'], 404);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al eliminar la mascota', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function toggleActive($id)
+    {
+        $pet = Pet::withTrashed()->find($id);
+
+        if (!$pet) {
+            return response()->json(['message' => 'Mascota no encontrada'], 404);
+        }
+
+        if ($pet->deleted_at) {
+            // Si está eliminado, lo activamos (colocamos deleted_at en null)
+            $pet->restore();
+            return response()->json(['message' => 'Dueño activado con éxito', 'data' => $pet]);
+        } else {
+            // Si está activo, lo desactivamos (registramos la fecha actual en deleted_at)
+            $pet->delete();
+            return response()->json(['message' => 'Dueño desactivado con éxito', 'data' => $pet]);
+        }
+    }
+
+
+
 }
