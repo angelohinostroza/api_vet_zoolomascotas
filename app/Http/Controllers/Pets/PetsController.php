@@ -173,13 +173,38 @@ class PetsController extends Controller
     public function indexApp()
     {
         try {
-            $pets = Pet::withTrashed()->orderBy('created_at', 'desc')->get();
+            $pets = Pet::with('owner:id,names,surnames,phone')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($pet) {
+                    return [
+                        'id' => $pet->id,
+                        'specie' => $pet->specie,
+                        'name' => $pet->name,
+                        'breed' => $pet->breed,
+                        'birth_date' => $pet->birth_date,
+                        'gender' => $pet->gender,
+                        'color' => $pet->color,
+                        'weight' => $pet->weight,
+                        'photo' => $pet->photo,
+                        'medical_notes' => $pet->medical_notes,
+                        'owner_id' => $pet->owner_id,
+                        'deleted_at' => $pet->deleted_at,
+                        'owner' => trim(($pet->owner->names ?? '') . ' ' . ($pet->owner->surnames ?? '')),
+                        'phone' => $pet->owner->phone ?? null,
+                    ];
+                });
+
             return response()->json([
-                'message' => 'Listado Completo de Mascotas',
+                'message' => 'Lista de mascotas obtenida correctamente',
                 'data' => $pets
             ], 200);
-        } catch (Exception $e) {
-            return response()->json(['error' => 'Error al obtener las mascotas', 'message' => $e->getMessage()]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener las mascotas',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -228,6 +253,55 @@ class PetsController extends Controller
         }
     }
 
+
+    public function search(Request $request)
+    {
+        try {
+            // Obtener el parámetro de búsqueda
+            $searchTerm = $request->input('search');
+
+            $pets = Pet::with('owner:id,names,surnames,phone')
+                ->where(function ($query) use ($searchTerm) {
+                    $query->where('name', 'ILIKE', "%{$searchTerm}%") // Buscar por nombre de la mascota
+                    ->orWhereHas('owner', function ($q) use ($searchTerm) { // Si no, buscar en el dueño
+                        $q->where('names', 'ILIKE', "%{$searchTerm}%");
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($pet) {
+                    return [
+                        'id' => $pet->id,
+                        'specie' => $pet->specie,
+                        'name' => $pet->name,
+                        'breed' => $pet->breed,
+                        'birth_date' => $pet->birth_date,
+                        'gender' => $pet->gender,
+                        'color' => $pet->color,
+                        'weight' => $pet->weight,
+                        'photo' => $pet->photo,
+                        'medical_notes' => $pet->medical_notes,
+                        'owner_id' => $pet->owner_id,
+                        'deleted_at' => $pet->deleted_at,
+                        'owner' => trim(($pet->owner->names ?? '') . ' ' . ($pet->owner->surnames ?? '')),
+                        'phone' => $pet->owner->phone ?? null,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Búsqueda realizada correctamente',
+                'data' => $pets
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar mascotas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }

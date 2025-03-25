@@ -91,8 +91,8 @@ Route::post('app/user-login-app', [AuthController::class, 'loginUserApp']);
 // RUTAS PROTEGIAS CON SANCTUM (Una vez iniciando sesion)
 Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
 
-    // DUEÑOS Y SUS MASCOTAS
-    Route::prefix('owners')->group(function () {
+    // DUEÑOS Y SUS MASCOTAS Vista del Admin
+    Route::prefix('admin/owners')->group(function () {
         Route::get('/', [OwnerController::class, 'index']); // Obtener todos los dueños
         Route::post('/', [OwnerController::class, 'store']); // Crear un dueño
         Route::put('/{id}', [OwnerController::class, 'update']); // Actualizar un dueño
@@ -100,13 +100,17 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}/pets', [OwnerController::class, 'getOwnerPets']); // Obtener mascotas de un dueño
         Route::put('/toggle-active/{id}', [OwnerController::class, 'toggleActive']); //Activar y desactivar "ELIMINAR deleted_at
         Route::get('/search', [OwnerController::class, "searchOwners"]);//Buscar Mediante Nombres y Apellidos
-
-        //Lo podemos abajo
-        /*
-         * Laravel ejecuta las rutas en el orden en que están definidas. Coloca la ruta de búsqueda antes de la ruta con parámetro dinámico:
-         * */
+        //* Laravel ejecuta las rutas en el orden en que están definidas. Coloca la ruta de búsqueda antes de la ruta con parámetro dinámico:
         Route::get('/{id}', [OwnerController::class, 'show']); // Obtener un dueño por ID
+    });
 
+    // Mascotas Vista del Admin
+    Route::prefix('admin/pets')->group(function () {
+        Route::get('/', [PetsController::class, 'indexApp']); // Obtener las mascotas y su dueño
+        Route::put('/{id}', [PetsController::class, 'updateApp']); // Actualizar datos de la mascota
+        Route::delete('/{id}', [PetsController::class, 'destroyApp']); // Eliminar (soft delete)
+        Route::put('/toggle-active/{id}',[PetsController::class, 'toggleActive']); /// Activar y Desactivar mascotas
+        Route::get('/search', [PetsController::class, 'search']);//Buscar mendiante Mascota y Dueño
     });
 
     //  MASCOTAS Y SU HISTORIAL MÉDICO
