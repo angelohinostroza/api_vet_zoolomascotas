@@ -6,6 +6,7 @@ namespace App\Models;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Appointment\Appointment;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Veterinarie\VeterinarieScheduleDay;
@@ -92,5 +93,10 @@ class User extends Authenticatable implements JWTSubject
 
     public function schedule_days(){
         return $this->hasMany(VeterinarieScheduleDay::class,"veterinarie_id");
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, "veterinarie_id");
     }
 }

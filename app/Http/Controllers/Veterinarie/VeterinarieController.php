@@ -219,6 +219,17 @@ class VeterinarieController extends Controller
             ], 403);
         }
         $veterinarie = User::findOrFail($id);
+
+        $hasAppointments = $veterinarie->appointments()->exists();
+        $hasSchedule = $veterinarie->schedule_days()->exists();
+
+        if ($hasAppointments || $hasSchedule) {
+            return response()->json([
+                "message" => 403,
+                "message_text" => "No se puede eliminar el veterinario porque tiene registros asociados."
+            ], 403);
+        }
+
         if($veterinarie->avatar){
             Storage::delete($veterinarie->avatar);
         }

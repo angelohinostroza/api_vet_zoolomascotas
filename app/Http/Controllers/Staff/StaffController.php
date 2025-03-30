@@ -131,16 +131,35 @@ class StaffController extends Controller
      */
     public function destroy(string $id)
     {
-        Gate::authorize('delete',User::class);
-        $user = User::findOrFail($id);
-        if($user->avatar){
-            Storage::delete($user->avatar);
-        }
-        $user->delete();
+        Gate::authorize('delete', User::class);
 
-        return response()->json([
-            "message" => 200,
-            "message_text" => "El usuario se ha eliminado correctamente"
-        ]);
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    "message" => 404,
+                    "message_text" => "Usuario no encontrado"
+                ], 404);
+            }
+
+            if ($user->avatar) {
+                Storage::delete($user->avatar);
+            }
+
+            $user->delete();
+
+            return response()->json([
+                "message" => 200,
+                "message_text" => "El usuario se ha eliminado correctamente"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => 500,
+                "message_text" => "Ocurrió un error al eliminar el usuario",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
+
 }

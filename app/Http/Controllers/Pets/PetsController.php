@@ -137,16 +137,16 @@ class PetsController extends Controller
      */
     public function destroy(string $id)
     {
-        Gate::authorize('delete', Pet::class);
+        Gate::authorize('delete',Pet::class);
         $pet = Pet::findOrFail($id);
-        if ($pet->avatar) {
+        if($pet->avatar){
             Storage::delete($pet->avatar);
         }
         $pet->delete();
 
         return response()->json([
             "message" => 200,
-            "message_text" => "El usuario se ha eliminado correctamente"
+            "message_text" => "La mascota se ha eliminado correctamente"
         ]);
     }
 
