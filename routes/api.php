@@ -107,6 +107,7 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
     // Mascotas Vista del Admin
     Route::prefix('admin/pets')->group(function () {
         Route::get('/', [PetsController::class, 'indexApp']); // Obtener las mascotas y su dueño
+        Route::get('/{id}', [PetsController::class, 'getPetById']); // Obtener una mascota
         Route::put('/{id}', [PetsController::class, 'updateApp']); // Actualizar datos de la mascota
         Route::delete('/{id}', [PetsController::class, 'destroyApp']); // Eliminar (soft delete)
         Route::put('/toggle-active/{id}',[PetsController::class, 'toggleActive']); /// Activar y Desactivar mascotas
