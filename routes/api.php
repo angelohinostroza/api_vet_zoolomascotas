@@ -100,7 +100,6 @@ Route::prefix('app')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}/pets', [OwnerController::class, 'getOwnerPets']); // Obtener mascotas de un dueño
         Route::put('/toggle-active/{id}', [OwnerController::class, 'toggleActive']); //Activar y desactivar "ELIMINAR deleted_at
         Route::get('/search', [OwnerController::class, "searchOwners"]);//Buscar Mediante Nombres y Apellidos
-        //* Laravel ejecuta las rutas en el orden en que están definidas. Coloca la ruta de búsqueda antes de la ruta con parámetro dinámico:
         Route::get('/{id}', [OwnerController::class, 'show']); // Obtener un dueño por ID
     });
 
